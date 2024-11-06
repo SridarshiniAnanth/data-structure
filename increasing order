@@ -1,0 +1,22 @@
+struct TreeNode* curr = NULL;
+struct TreeNode* createNewNode(int val){
+    struct TreeNode* node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+    node->val = val;
+    node->right = NULL;
+    node->left = NULL;
+    return node;
+}
+void inorder(struct TreeNode* root){
+    if(!root)
+        return;
+    inorder(root->left);
+    curr->right = createNewNode(root->val);
+    curr = curr->right;
+    inorder(root->right);
+}
+struct TreeNode* increasingBST(struct TreeNode* root) {
+    struct TreeNode* ptr =  createNewNode(-1);
+    curr = ptr;
+    inorder(root);
+    return ptr->right;
+}
