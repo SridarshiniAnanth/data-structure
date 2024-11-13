@@ -1,0 +1,114 @@
+#include <stdio.h>
+#include <string.h>
+
+#define MAX_CURRENCIES 5
+#define MAX_REQUESTS 10
+
+typedef struct {
+    char name[4];
+    double rateToUSD;  
+} Currency;
+
+typedef struct {
+    char fromCode[4]; 
+    char toCode[4];     
+    double amount;
+} ConversionRequest;
+
+Currency currencies[MAX_CURRENCIES] = {
+    {"USD", 1.0},
+    {"EUR", 0.85},
+    {"JPY", 113.5},
+    {"GBP", 0.75},
+    {"INR", 74.0}
+};
+
+int findCurrencyIndex(const char* code) {
+    for (int i = 0; i < MAX_CURRENCIES; i++) {
+        if (strcmp(currencies[i].name, code) == 0) {
+            return i;
+        }
+    }
+    return -1; // Currency not found
+}
+
+
+void convertCurrency(const char* fromCode, const char* toCode, double amount) {
+    int fromIndex = findCurrencyIndex(fromCode);
+    int toIndex = findCurrencyIndex(toCode);
+    
+    if (fromIndex == -1 || toIndex == -1) {
+        printf("Currency not found.\n");
+        return;
+    }
+    
+    double amountInUSD = amount / currencies[fromIndex].rateToUSD;
+    double convertedAmount = amountInUSD * currencies[toIndex].rateToUSD;
+    
+    printf("%.2f %s = %.2f %s\n", amount, fromCode, convertedAmount, toCode);
+}
+
+int main() {
+    ConversionRequest requests[MAX_REQUESTS]; 
+    int requestCount = 0; 
+    char fromCode[4], toCode[4];
+    double amount;
+    int choice;
+    
+    while (1) {
+        printf("\nCurrency Converter\n");
+        printf("Available currencies: USD, EUR, JPY, GBP, INR\n");
+        printf("1. Convert Currency\n");
+        printf("2. Process All Requests\n");
+        printf("3. Exit\n");
+        printf("Choose an option: ");
+        scanf("%d", &choice);
+        
+        if (choice == 1) {
+           
+            if (requestCount >= MAX_REQUESTS) {
+                printf("Maximum number of requests reached. Please process the requests first.\n");
+                continue;
+            }
+            
+            printf("Enter source currency code: ");
+            scanf("%s", fromCode);
+            printf("Enter target currency code: ");
+            scanf("%s", toCode);
+            printf("Enter amount: ");
+            scanf("%lf", &amount);
+            
+            // Store the request in the array
+            ConversionRequest req = {0};
+            strcpy(req.fromCode, fromCode);
+            strcpy(req.toCode, toCode);
+            req.amount = amount;
+            
+            requests[requestCount] = req;
+            requestCount++;
+            printf("Request added to the list.\n");
+        } 
+        else if (choice == 2) {
+            // Process all the stored requests
+            if (requestCount == 0) {
+                printf("No requests to process.\n");
+            } else {
+                printf("\nProcessing all requests:\n");
+                for (int i = 0; i < requestCount; i++) {
+                    ConversionRequest req = requests[i];
+                    convertCurrency(req.fromCode, req.toCode, req.amount);
+                }
+                requestCount = 0;  
+            }
+        }
+        else if (choice == 3) {
+            printf("Exiting...\n");
+            break;
+        } 
+        else {
+            printf("Invalid choice. Try again.\n");
+        }
+    }
+    
+    return 0;
+}
