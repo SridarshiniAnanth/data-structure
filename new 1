@@ -1,0 +1,155 @@
+#include <stdio.h>
+#include <string.h>
+
+#define MAX_CURRENCIES 5
+#define MAX_REQUESTS 10
+
+typedef struct {
+    char name[4];       // 3-letter currency code
+    double rateToUSD;   // Exchange rate to USD as a base
+} Currency;
+
+typedef struct {
+    char fromCode[4];   // Source currency code
+    char toCode[4];     // Target currency code
+    double amount;      // Amount to be converted
+} ConversionRequest;
+
+// Queue to hold conversion requests
+typedef struct {
+    ConversionRequest requests[MAX_REQUESTS];
+    int front;
+    int rear;
+} RequestQueue;
+
+Currency currencies[MAX_CURRENCIES] = {
+    {"USD", 1.0},
+    {"EUR", 0.85},
+    {"JPY", 113.5},
+    {"GBP", 0.75},
+    {"INR", 74.0}
+};
+
+// Function to find currency by code
+int findCurrencyIndex(const char* code) {
+    for (int i = 0; i < MAX_CURRENCIES; i++) {
+        if (strcmp(currencies[i].name, code) == 0) {
+            return i;
+        }
+    }
+    return -1; // Currency not found
+}
+
+// Function to convert from one currency to another
+void convertCurrency(const char* fromCode, const char* toCode, double amount) {
+    int fromIndex = findCurrencyIndex(fromCode);
+    int toIndex = findCurrencyIndex(toCode);
+    
+    if (fromIndex == -1 || toIndex == -1) {
+        printf("Currency not found.\n");
+        return;
+    }
+    
+    double amountInUSD = amount / currencies[fromIndex].rateToUSD;
+    double convertedAmount = amountInUSD * currencies[toIndex].rateToUSD;
+    
+    printf("%.2f %s = %.2f %s\n", amount, fromCode, convertedAmount, toCode);
+}
+
+// Function to initialize the queue
+void initializeQueue(RequestQueue* queue) {
+    queue->front = 0;
+    queue->rear = -1;
+}
+
+// Function to check if the queue is full
+int isQueueFull(RequestQueue* queue) {
+    return queue->rear == MAX_REQUESTS - 1;
+}
+
+// Function to check if the queue is empty
+int isQueueEmpty(RequestQueue* queue) {
+    return queue->front > queue->rear;
+}
+
+// Function to enqueue a new conversion request
+void enqueue(RequestQueue* queue, ConversionRequest request) {
+    if (isQueueFull(queue)) {
+        printf("Queue is full. Cannot add more requests.\n");
+        return;
+    }
+    queue->requests[++queue->rear] = request;
+}
+
+// Function to dequeue and process a conversion request
+void dequeue(RequestQueue* queue) {
+    if (isQueueEmpty(queue)) {
+        printf("No requests to process.\n");
+        return;
+    }
+    ConversionRequest request = queue->requests[queue->front++];
+    convertCurrency(request.fromCode, request.toCode, request.amount);
+}
+
+int main() {
+    RequestQueue queue;
+    initializeQueue(&queue);  // Initialize the queue
+
+    char fromCode[4], toCode[4];
+    double amount;
+    int choice;
+    
+    while (1) {
+        printf("\nCurrency Converter\n");
+        printf("Available currencies: USD, EUR, JPY, GBP, INR\n");
+        printf("1. Add Conversion Request\n");
+        printf("2. Process All Requests\n");
+        printf("3. Exit\n");
+        printf("Choose an option: ");
+        scanf("%d", &choice);
+        
+        if (choice == 1) {
+            // Check if we can add more requests
+            if (isQueueFull(&queue)) {
+                printf("Maximum number of requests reached. Please process the requests first.\n");
+                continue;
+            }
+            
+            printf("Enter source currency code: ");
+            scanf("%s", fromCode);
+            printf("Enter target currency code: ");
+            scanf("%s", toCode);
+            printf("Enter amount: ");
+            scanf("%lf", &amount);
+            
+            // Store the request in the queue
+            ConversionRequest req = {0};
+            strcpy(req.fromCode, fromCode);
+            strcpy(req.toCode, toCode);
+            req.amount = amount;
+            
+            enqueue(&queue, req);
+            printf("Request added to the queue.\n");
+        } 
+        else if (choice == 2) {
+            // Process all the stored requests
+            if (isQueueEmpty(&queue)) {
+                printf("No requests to process.\n");
+            } else {
+                printf("\nProcessing all requests:\n");
+                while (!isQueueEmpty(&queue)) {
+                    dequeue(&queue);  // Process each request
+                }
+            }
+        }
+        else if (choice == 3) {
+            printf("Exiting...\n");
+            break;
+        } 
+        else {
+            printf("Invalid choice. Try again.\n");
+        }
+    }
+    
+    return 0;
+}
