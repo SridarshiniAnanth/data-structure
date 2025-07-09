@@ -1,0 +1,13 @@
+
+bool hasCycle(struct ListNode *head) {
+    while(head != NULL){
+        head->val = 1000000;
+        head = head->next;
+        if(head ==NULL)
+            return 0;
+        if(head->val == 1000000)
+            return 1;
+    }
+
+    return 0;
+}
